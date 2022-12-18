@@ -1,20 +1,23 @@
-const RandomResponse = [
-	'this is a random response number 1. You are lucky!',
-	'this is a second random response. Try hard!',
-	'third random response. Try another time!',
-	'yep, it is a random response number 4',
-];
-
-addEventListener('fetch', event => {
-	return event.respondWith(handleRequest(event.request));
-});
-
-
 async function handleRequest(request) {
-	let random_value = Math.floor(Math.random() * RandomResponse.length)
-	return new Response(RandomResponse[random_value] , { 
+	
+	// If the bot score is below 30, return a JSON response and block this request
+	if (request.cf.bot_management.score < 30) {
+	  return new Response(JSON.stringify({ message: "this is an automatic request" }), {
+		status: 403,
 		headers: {
-			'content-type': 'text/plain',
-	  	},
-	}); 
-}
+		  "Content-Type": "application/json",
+		},
+	  });
+	}
+  
+	// Otherwise, send a subrequest to the requested URL
+	const response = await fetch(request.url, {
+	  method: request.method,
+	  body: request.body,
+	  headers: request.headers,
+	});
+  
+	// Return the response from the subrequest
+	return response;
+  }
+  
